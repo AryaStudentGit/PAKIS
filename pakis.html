@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAKIS – Panel Aksi Komunitas Integratif Sehat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  /* =========================================
+     TOKENS & RESET
+  ========================================= */
+  :root {
+    --c-bg:        #f0faf3;
+    --c-surface:   #ffffff;
+    --c-surface2:  #e8f5ed;
+    --c-border:    #c8e6d0;
+    --c-text:      #1a3326;
+    --c-muted:     #5a7d68;
+    --c-accent:    #18a558;
+    --c-accent2:   #e69c00;
+    --c-accent3:   #e85d26;
+    --c-accent4:   #0e9bbf;
+    --c-pilar1:    #18a558;
+    --c-pilar2:    #e69c00;
+    --c-pilar3:    #0e9bbf;
+    --r-card: 20px;
+    --r-btn:  14px;
+    --shadow: 0 4px 20px rgba(0,100,50,.10);
+    --transition: .28s cubic-bezier(.4,0,.2,1);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px;scroll-behavior:smooth}
+  body{
+    background:var(--c-bg);
+    color:var(--c-text);
+    font-family:'Nunito',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* =========================================
+     NOISE TEXTURE OVERLAY
+  ========================================= */
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+    pointer-events:none;z-index:0;opacity:.4;
+  }
+
+  /* =========================================
+     LAYOUT WRAPPER
+  ========================================= */
+  .app{
+    position:relative;z-index:1;
+    max-width:520px;
+    margin:0 auto;
+    padding:0 0 100px;
+  }
+  @media(min-width:900px){
+    .app{max-width:960px;display:grid;grid-template-columns:300px 1fr;grid-template-rows:auto 1fr;column-gap:24px;padding:24px 24px 40px;}
+  }
+
+  /* =========================================
+     HEADER
+  ========================================= */
+  .header{
+    padding:24px 20px 0;
+    display:flex;align-items:center;gap:14px;
+  }
+  @media(min-width:900px){
+    .header{
+      grid-column:1/-1;
+      padding:0 0 20px;
+      border-bottom:1.5px solid var(--c-border);
+    }
+  }
+  .avatar-wrap{position:relative;flex-shrink:0;}
+  .avatar{
+    width:60px;height:60px;border-radius:50%;
+    object-fit:cover;
+    border:2.5px solid var(--c-accent);
+    box-shadow:0 0 0 5px rgba(24,165,88,.12);
+    background:var(--c-surface2);
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;
+  }
+  .avatar-badge{
+    position:absolute;bottom:-2px;right:-2px;
+    background:var(--c-accent2);
+    color:#fff;
+    font-size:10px;font-weight:800;
+    padding:2px 6px;border-radius:20px;
+    border:2px solid var(--c-bg);
+    white-space:nowrap;
+  }
+  .header-info{flex:1;min-width:0;}
+  .header-greeting{font-size:12px;color:var(--c-muted);margin-bottom:2px;}
+  .header-name{font-family:'Righteous',cursive;font-size:20px;font-weight:400;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .header-rt{font-size:12px;color:var(--c-muted);}
+  .header-saldo{
+    flex-shrink:0;
+    text-align:right;
+  }
+  .saldo-label{font-size:11px;color:var(--c-muted);}
+  .saldo-value{
+    font-family:'Righteous',cursive;
+    font-size:22px;font-weight:400;
+    color:var(--c-accent);
+    line-height:1.1;
+    display:flex;align-items:center;gap:4px;
+  }
+  .saldo-value span{font-size:12px;font-weight:700;color:var(--c-muted);}
+
+  /* point pulse animation */
+  @keyframes pointPulse{
+    0%{opacity:1;transform:scale(1)}
+    60%{opacity:.8;transform:scale(1.06)}
+    100%{opacity:1;transform:scale(1)}
+  }
+  .saldo-value{animation:pointPulse 3s ease-in-out infinite;}
+
+  /* =========================================
+     SIDEBAR (desktop only)
+  ========================================= */
+  @media(min-width:900px){
+    .sidebar{grid-column:1;grid-row:2;}
+    .main{grid-column:2;grid-row:2;}
+  }
+
+  /* =========================================
+     DYNAMIC ACTION CARD
+  ========================================= */
+  .action-card{
+    margin:20px 16px 0;
+    border-radius:var(--r-card);
+    padding:20px;
+    position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#d4f5e3 0%,#edfaf3 100%);
+    border:1.5px solid rgba(24,165,88,.22);
+    box-shadow:0 4px 24px rgba(24,165,88,.12),var(--shadow);
+    cursor:pointer;
+    transition:transform var(--transition),box-shadow var(--transition);
+  }
+  .action-card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(24,165,88,.18);}
+  .action-card.urgent{
+    background:linear-gradient(135deg,#fff4cc 0%,#fffbea 100%);
+    border-color:rgba(230,156,0,.28);
+    box-shadow:0 4px 24px rgba(230,156,0,.14),var(--shadow);
+  }
+  .action-card.urgent:hover{box-shadow:0 12px 36px rgba(230,156,0,.2);}
+  .action-card.health{
+    background:linear-gradient(135deg,#cceef8 0%,#eaf8fd 100%);
+    border-color:rgba(14,155,191,.25);
+    box-shadow:0 4px 24px rgba(14,155,191,.12),var(--shadow);
+  }
+  .action-card.health:hover{box-shadow:0 12px 36px rgba(14,155,191,.18);}
+  .ac-glow{
+    position:absolute;top:-30px;right:-30px;
+    width:140px;height:140px;border-radius:50%;
+    background:radial-gradient(circle,rgba(24,165,88,.15) 0%,transparent 70%);
+    pointer-events:none;
+  }
+  .action-card.urgent .ac-glow{background:radial-gradient(circle,rgba(230,156,0,.18) 0%,transparent 70%);}
+  .action-card.health .ac-glow{background:radial-gradient(circle,rgba(14,155,191,.18) 0%,transparent 70%);}
+  .ac-tag{
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;
+    padding:4px 10px;border-radius:20px;
+    background:rgba(24,165,88,.14);color:#0e7a40;
+    margin-bottom:10px;
+  }
+  .action-card.urgent .ac-tag{background:rgba(230,156,0,.15);color:#a06800;}
+  .action-card.health .ac-tag{background:rgba(14,155,191,.14);color:#0779a0;}
+  .ac-title{font-family:'Righteous',cursive;font-size:19px;font-weight:400;line-height:1.25;margin-bottom:6px;color:var(--c-text);}
+  .ac-desc{font-size:13px;color:var(--c-muted);line-height:1.5;margin-bottom:14px;}
+  .ac-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:var(--c-accent);color:#fff;
+    font-weight:800;font-size:13px;
+    padding:10px 18px;border-radius:var(--r-btn);
+    border:none;cursor:pointer;
+    transition:background var(--transition),transform var(--transition);
+  }
+  .ac-btn:hover{background:#13874a;transform:scale(1.03);}
+  .action-card.urgent .ac-btn{background:var(--c-accent2);color:#fff;}
+  .action-card.urgent .ac-btn:hover{background:#b87a00;}
+  .action-card.health .ac-btn{background:var(--c-accent4);color:#fff;}
+  .action-card.health .ac-btn:hover{background:#0a7d9c;}
+
+  .ac-dots{display:flex;gap:6px;margin-top:14px;}
+  .ac-dot{width:7px;height:7px;border-radius:50%;background:var(--c-border);cursor:pointer;}
+  .ac-dot.active{background:var(--c-accent);width:20px;border-radius:4px;}
+
+  /* =========================================
+     SUPER MENU – 3 PILLAR BUTTONS
+  ========================================= */
+  .super-menu{
+    margin:20px 16px 0;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  }
+  @media(min-width:900px){
+    .super-menu{grid-template-columns:1fr;gap:12px;}
+  }
+  .pilar-btn{
+    border-radius:var(--r-card);
+    padding:16px 10px;
+    border:1.5px solid var(--c-border);
+    background:var(--c-surface);
+    cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    text-align:center;
+    transition:all var(--transition);
+    position:relative;overflow:hidden;
+    box-shadow:0 2px 10px rgba(0,80,40,.06);
+  }
+  @media(min-width:900px){
+    .pilar-btn{flex-direction:row;padding:18px 20px;gap:14px;text-align:left;}
+  }
+  .pilar-btn::before{
+    content:'';position:absolute;inset:0;opacity:0;
+    transition:opacity var(--transition);
+  }
+  .pilar-btn:hover::before{opacity:1;}
+  .pilar-btn.p1::before{background:linear-gradient(135deg,rgba(24,165,88,.08),rgba(24,165,88,.02));}
+  .pilar-btn.p2::before{background:linear-gradient(135deg,rgba(230,156,0,.08),rgba(230,156,0,.02));}
+  .pilar-btn.p3::before{background:linear-gradient(135deg,rgba(14,155,191,.08),rgba(14,155,191,.02));}
+  .pilar-btn:hover{border-color:var(--c-accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(24,165,88,.15);}
+  .pilar-btn.p2:hover{border-color:var(--c-accent2);box-shadow:0 8px 24px rgba(230,156,0,.15);}
+  .pilar-btn.p3:hover{border-color:var(--c-accent4);box-shadow:0 8px 24px rgba(14,155,191,.15);}
+  .pilar-icon{
+    font-size:28px;
+    width:52px;height:52px;flex-shrink:0;
+    border-radius:14px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  @media(min-width:900px){.pilar-icon{width:56px;height:56px;font-size:30px;}}
+  .p1 .pilar-icon{background:rgba(24,165,88,.12);}
+  .p2 .pilar-icon{background:rgba(230,156,0,.12);}
+  .p3 .pilar-icon{background:rgba(14,155,191,.12);}
+  .pilar-label{font-weight:800;font-size:13px;line-height:1.2;}
+  .pilar-sub{font-size:11px;color:var(--c-muted);margin-top:2px;display:none;}
+  @media(min-width:900px){.pilar-sub{display:block;}}
+  .pilar-arrow{display:none;margin-left:auto;font-size:18px;color:var(--c-muted);}
+  @media(min-width:900px){.pilar-arrow{display:block;}}
+
+  /* =========================================
+     MAIN CONTENT PANELS (hidden by default)
+  ========================================= */
+  .panel{
+    display:none;
+    margin:20px 16px 0;
+    animation:fadeUp .3s ease;
+  }
+  .panel.active{display:block;}
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(16px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  .panel-header{
+    display:flex;align-items:center;gap:10px;margin-bottom:16px;
+  }
+  .panel-back{
+    width:36px;height:36px;border-radius:10px;
+    background:var(--c-surface2);border:1px solid var(--c-border);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;color:var(--c-text);
+    transition:background var(--transition);
+  }
+  .panel-back:hover{background:var(--c-border);}
+  .panel-title{font-family:'Righteous',cursive;font-size:18px;font-weight:400;}
+
+  /* =========================================
+     PANEL CARDS (shared)
+  ========================================= */
+  .pcard{
+    background:var(--c-surface);
+    border:1px solid var(--c-border);
+    border-radius:var(--r-card);
+    padding:18px;
+    margin-bottom:12px;
+  }
+  .pcard-title{font-weight:700;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+  .badge{
+    font-size:10px;font-weight:700;padding:2px 8px;
+    border-radius:20px;text-transform:uppercase;letter-spacing:.05em;
+  }
+  .badge-green{background:rgba(24,165,88,.12);color:#0e7a40;}
+  .badge-yellow{background:rgba(230,156,0,.12);color:#a06800;}
+  .badge-blue{background:rgba(14,155,191,.12);color:#0779a0;}
+  .badge-orange{background:rgba(232,93,38,.12);color:#b03a10;}
+
+  /* =========================================
+     COUNTDOWN TIMER COMPONENT
+  ========================================= */
+  .countdown-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .countdown-card{
+    background:var(--c-surface);
+    border-radius:14px;padding:14px;
+    border:1px solid var(--c-border);
+    position:relative;overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,80,40,.06);
+  }
+  .cd-emoji{font-size:22px;margin-bottom:6px;}
+  .cd-name{font-size:12px;color:var(--c-muted);margin-bottom:4px;}
+  .cd-timer{font-family:'Righteous',cursive;font-size:26px;font-weight:400;color:var(--c-accent);line-height:1;}
+  .cd-timer.warning{color:var(--c-accent2);}
+  .cd-timer.danger{color:var(--c-accent3);}
+  .cd-unit{font-size:11px;color:var(--c-muted);}
+  .cd-progress{
+    margin-top:10px;height:5px;border-radius:3px;
+    background:var(--c-border);overflow:hidden;
+  }
+  .cd-bar{height:100%;border-radius:3px;background:var(--c-accent);transition:width 1s;}
+  .cd-bar.warning{background:var(--c-accent2);}
+  .cd-bar.danger{background:var(--c-accent3);}
+
+  /* =========================================
+     HARVEST CHOICE MODAL
+  ========================================= */
+  .harvest-choice{
+    display:none;
+    margin-top:12px;
+    background:var(--c-surface2);
+    border-radius:14px;
+    padding:14px;
+    border:1px solid var(--c-accent);
+    animation:fadeUp .25s ease;
+  }
+  .harvest-choice.show{display:block;}
+  .hc-title{font-weight:700;font-size:13px;margin-bottom:10px;color:var(--c-accent);}
+  .hc-btns{display:flex;gap:8px;}
+  .hc-btn{
+    flex:1;padding:10px;border-radius:10px;
+    font-weight:700;font-size:12px;
+    border:none;cursor:pointer;
+    transition:all var(--transition);
+  }
+  .hc-btn.self{background:rgba(24,165,88,.1);color:#0e7a40;border:1px solid rgba(24,165,88,.2);}
+  .hc-btn.self:hover{background:rgba(24,165,88,.2);}
+  .hc-btn.sell{background:var(--c-accent);color:#fff;}
+  .hc-btn.sell:hover{background:#13874a;}
+
+  /* =========================================
+     SALDO / WALLET
+  ========================================= */
+  .wallet-display{
+    display:flex;align-items:center;gap:14px;
+    background:linear-gradient(135deg,#fff8e0,#fffdf0);
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:14px;
+    border:1.5px solid rgba(230,156,0,.25);
+    box-shadow:0 4px 16px rgba(230,156,0,.1);
+  }
+  .wallet-icon{font-size:32px;}
+  .wallet-label{font-size:12px;color:var(--c-muted);}
+  .wallet-amount{font-family:'Righteous',cursive;font-size:28px;font-weight:400;color:var(--c-accent2);}
+
+  /* =========================================
+     HISTORY TABLE
+  ========================================= */
+  .history-list{display:flex;flex-direction:column;gap:8px;}
+  .hist-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;
+    background:var(--c-surface);
+    border-radius:12px;
+    border:1px solid var(--c-border);
+    box-shadow:0 1px 4px rgba(0,80,40,.05);
+  }
+  .hist-icon{font-size:20px;flex-shrink:0;}
+  .hist-info{flex:1;min-width:0;}
+  .hist-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .hist-date{font-size:11px;color:var(--c-muted);}
+  .hist-val{font-weight:800;font-size:14px;color:#0e7a40;flex-shrink:0;}
+
+  /* =========================================
+     ETALASE PKK
+  ========================================= */
+  .etalase-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .prod-card{
+    background:var(--c-surface);
+    border-radius:14px;
+    padding:12px;
+    border:1px solid var(--c-border);
+    cursor:pointer;
+    transition:all var(--transition);
+    box-shadow:0 2px 8px rgba(0,80,40,.05);
+  }
+  .prod-card:hover{border-color:var(--c-accent2);transform:translateY(-2px);box-shadow:0 8px 20px rgba(230,156,0,.15);}
+  .prod-emoji{font-size:30px;margin-bottom:6px;}
+  .prod-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+  .prod-price{font-size:12px;color:#a06800;font-weight:700;}
+  .prod-seller{font-size:11px;color:var(--c-muted);}
+
+  /* =========================================
+     LAPOR JENTIK FLOW
+  ========================================= */
+  .lapor-steps{display:flex;flex-direction:column;gap:10px;}
+  .step-item{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 14px;
+    background:var(--c-surface);
+    border-radius:12px;
+    border:1px solid var(--c-border);
+  }
+  .step-num{
+    width:30px;height:30px;border-radius:50%;
+    background:rgba(14,155,191,.12);color:#0779a0;
+    font-weight:800;font-size:13px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .step-num.done{background:rgba(24,165,88,.12);color:#0e7a40;}
+  .step-text{font-size:13px;font-weight:700;flex:1;}
+  .step-status{font-size:11px;color:var(--c-muted);}
+  .lapor-main-btn{
+    width:100%;padding:16px;
+    background:var(--c-accent4);color:#fff;
+    font-weight:800;font-size:15px;
+    border:none;border-radius:14px;cursor:pointer;
+    margin-top:4px;
+    transition:all var(--transition);
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .lapor-main-btn:hover{background:#0a7d9c;transform:scale(1.02);}
+
+  /* =========================================
+     TOGA SEARCH
+  ========================================= */
+  .toga-search-wrap{position:relative;margin-bottom:14px;}
+  .toga-input{
+    width:100%;padding:13px 16px 13px 44px;
+    background:var(--c-surface);
+    border:1.5px solid var(--c-border);
+    border-radius:12px;
+    color:var(--c-text);
+    font-size:14px;font-family:inherit;font-weight:600;
+    transition:border-color var(--transition);
+    outline:none;
+  }
+  .toga-input::placeholder{color:var(--c-muted);}
+  .toga-input:focus{border-color:var(--c-accent4);box-shadow:0 0 0 3px rgba(14,155,191,.1);}
+  .toga-search-icon{
+    position:absolute;left:14px;top:50%;transform:translateY(-50%);
+    font-size:18px;pointer-events:none;
+  }
+  .toga-result{
+    background:var(--c-surface);
+    border-radius:14px;
+    padding:14px;
+    border:1.5px solid rgba(14,155,191,.25);
+    display:none;
+    box-shadow:0 4px 16px rgba(14,155,191,.1);
+  }
+  .toga-result.show{display:block;animation:fadeUp .25s ease;}
+  .toga-plant-name{font-family:'Righteous',cursive;font-size:17px;font-weight:400;color:#0779a0;margin-bottom:4px;}
+  .toga-desc{font-size:13px;color:var(--c-muted);line-height:1.55;margin-bottom:10px;}
+  .toga-cara{font-size:12px;background:rgba(14,155,191,.07);border-radius:10px;padding:10px;border-left:3px solid var(--c-accent4);}
+  .toga-cara b{color:#0779a0;}
+
+  /* =========================================
+     POINT TOAST
+  ========================================= */
+  .toast{
+    position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-80px);
+    background:#fff;
+    border:1.5px solid var(--c-accent);
+    color:var(--c-text);
+    padding:12px 20px;
+    border-radius:40px;
+    font-weight:800;font-size:14px;
+    box-shadow:0 8px 30px rgba(24,165,88,.2);
+    z-index:9999;
+    transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+    white-space:nowrap;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .toast span{color:var(--c-accent);}
+
+  /* =========================================
+     BOTTOM NAV (mobile)
+  ========================================= */
+  .bottom-nav{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(20px);
+    border-top:1px solid var(--c-border);
+    display:flex;
+    padding:8px 0 max(8px,env(safe-area-inset-bottom));
+    z-index:100;
+    box-shadow:0 -4px 20px rgba(0,80,40,.08);
+  }
+  @media(min-width:900px){.bottom-nav{display:none;}}
+  .bnav-item{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    font-size:10px;color:var(--c-muted);font-weight:600;
+    cursor:pointer;padding:6px 0;
+    transition:color var(--transition);
+  }
+  .bnav-item.active{color:var(--c-accent);}
+  .bnav-icon{font-size:20px;}
+
+  /* =========================================
+     SECTION LABEL
+  ========================================= */
+  .section-label{
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+    color:var(--c-muted);margin-bottom:10px;margin-top:18px;
+    padding:0 2px;
+  }
+
+  /* =========================================
+     CHECKOUT MODAL
+  ========================================= */
+  .modal-overlay{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+    z-index:500;
+    align-items:flex-end;justify-content:center;
+  }
+  .modal-overlay.show{display:flex;}
+  @media(min-width:900px){.modal-overlay{align-items:center;}}
+  .modal-sheet{
+    background:var(--c-surface);
+    border-radius:24px 24px 0 0;
+    padding:24px 20px;
+    width:100%;max-width:520px;
+    animation:slideUp .3s ease;
+    box-shadow:0 -8px 40px rgba(0,80,40,.12);
+  }
+  @media(min-width:900px){.modal-sheet{border-radius:24px;max-width:400px;}}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .modal-title{font-family:'Righteous',cursive;font-size:18px;font-weight:400;margin-bottom:4px;}
+  .modal-sub{font-size:13px;color:var(--c-muted);margin-bottom:16px;}
+  .modal-btns{display:flex;gap:10px;margin-top:16px;}
+  .modal-btn{
+    flex:1;padding:13px;border-radius:12px;
+    font-weight:700;font-size:14px;border:none;cursor:pointer;
+    transition:all var(--transition);
+  }
+  .modal-btn.cancel{background:var(--c-surface2);color:var(--c-muted);border:1px solid var(--c-border);}
+  .modal-btn.confirm{background:var(--c-accent2);color:#fff;}
+  .modal-btn.confirm:hover{background:#b87a00;}
+
+  /* =========================================
+     SCROLLBAR
+  ========================================= */
+  ::-webkit-scrollbar{width:5px;}
+  ::-webkit-scrollbar-track{background:var(--c-surface2);}
+  ::-webkit-scrollbar-thumb{background:var(--c-border);border-radius:3px;}
+
+  /* =========================================
+     DESKTOP SIDEBAR ADJUSTMENTS
+  ========================================= */
+  @media(min-width:900px){
+    .header{padding-bottom:20px;}
+    .super-menu{margin:0;}
+    .action-card{margin:0 0 16px;}
+    .panel{margin:0;}
+    .main > .action-card{margin-top:0;}
+    .main > .panel{margin-top:0;}
+    .sidebar{padding-top:0;}
+    .main{padding-top:0;}
+    .pilar-label{font-size:15px;}
+  }
+
+  /* =========================================
+     UTILITY
+  ========================================= */
+  .mt12{margin-top:12px;}
+  .flex-between{display:flex;align-items:center;justify-content:space-between;}
+  .chip{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:4px 10px;border-radius:20px;
+    font-size:11px;font-weight:700;
+    background:var(--c-surface2);color:var(--c-muted);
+    border:1px solid var(--c-border);
+  }
+</style>
+</head>
+<body>
+
+<!-- TOAST NOTIFICATION -->
+<div class="toast" id="toast">🎉 +<span>10</span> Poin Komunitas kamu bertambah!</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="checkoutModal">
+  <div class="modal-sheet">
+    <div class="modal-title" id="modalTitle">Checkout Produk PKK</div>
+    <div class="modal-sub" id="modalSub">Saldo sampah kamu cukup untuk produk ini.</div>
+    <div class="pcard" style="padding:12px;background:var(--c-surface2);">
+      <div class="flex-between">
+        <span id="modalProd" style="font-weight:700;font-size:14px;">🍰 Klepon Bu Sari</span>
+        <span id="modalPrice" style="color:#a06800;font-weight:800;">Rp 12.000</span>
+      </div>
+      <div style="font-size:12px;color:var(--c-muted);margin-top:4px;">Bayar dengan Saldo Sampah</div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeModal()">Batal</button>
+      <button class="modal-btn confirm" onclick="confirmCheckout()">✅ Konfirmasi</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP WRAPPER -->
+<div class="app">
+
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <div class="avatar-wrap">
+      <div class="avatar">👩</div>
+      <div class="avatar-badge">LVL 4</div>
+    </div>
+    <div class="header-info">
+      <div class="header-greeting">Selamat Pagi ☀️</div>
+      <div class="header-name">Ibu Siti Rahayu</div>
+      <div class="header-rt">RT 07 / RW 02 · Kelurahan Jemundo</div>
+    </div>
+    <div class="header-saldo">
+      <div class="saldo-label">🌿 Saldo Hijau</div>
+      <div class="saldo-value" id="saldoDisplay">4.820 <span>poin</span></div>
+      <div style="font-size:11px;color:var(--c-muted);">≈ Rp 48.200</div>
+    </div>
+  </header>
+
+  <!-- ===== SIDEBAR / LEFT COLUMN ===== -->
+  <div class="sidebar">
+    <!-- Super Menu -->
+    <div class="super-menu" id="superMenu">
+      <button class="pilar-btn p1" onclick="openPanel('pangan')">
+        <div class="pilar-icon">🌱</div>
+        <div>
+          <div class="pilar-label">Dapur Hidup</div>
+          <div class="pilar-sub">Hidroponik & Budikdamber</div>
+        </div>
+        <div class="pilar-arrow">›</div>
+      </button>
+      <button class="pilar-btn p2" onclick="openPanel('ekonomi')">
+        <div class="pilar-icon">♻️</div>
+        <div>
+          <div class="pilar-label">Dompet Hijau</div>
+          <div class="pilar-sub">Bank Sampah & Pasar PKK</div>
+        </div>
+        <div class="pilar-arrow">›</div>
+      </button>
+      <button class="pilar-btn p3" onclick="openPanel('kesehatan')">
+        <div class="pilar-icon">🏥</div>
+        <div>
+          <div class="pilar-label">Pojok Sehat</div>
+          <div class="pilar-sub">Jentik & Apotek Hidup</div>
+        </div>
+        <div class="pilar-arrow">›</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== MAIN COLUMN ===== -->
+  <div class="main">
+
+    <!-- DYNAMIC ACTION CARD -->
+    <div class="action-card urgent" id="actionCard" onclick="handleActionCard()">
+      <div class="ac-glow"></div>
+      <div class="ac-tag" id="acTag">⏰ Urgensi Hari Ini</div>
+      <div class="ac-title" id="acTitle">Waktunya Lapor Jentik Minggu Ini!</div>
+      <div class="ac-desc" id="acDesc">Hari ini Jumat — waktunya cek bak mandi & pelaporan rutin jentik. Proses hanya 30 detik, dapatkan +10 Poin Komunitas!</div>
+      <button class="ac-btn" id="acBtn">📸 Lapor Sekarang</button>
+      <div class="ac-dots">
+        <div class="ac-dot active" onclick="setCard(0,event)"></div>
+        <div class="ac-dot" onclick="setCard(1,event)"></div>
+        <div class="ac-dot" onclick="setCard(2,event)"></div>
+      </div>
+    </div>
+
+    <!-- ===== PANEL: DAPUR HIDUP (Pangan) ===== -->
+    <div class="panel" id="panelPangan">
+      <div class="panel-header">
+        <button class="panel-back" onclick="closePanel()">←</button>
+        <div class="panel-title">🌱 Dapur Hidup</div>
+        <div class="chip" style="margin-left:auto;">3 Aktif</div>
+      </div>
+
+      <div class="section-label">Status Pertumbuhan</div>
+      <div class="countdown-grid">
+        <div class="countdown-card">
+          <div class="cd-emoji">🥬</div>
+          <div class="cd-name">Kangkung Hidroponik</div>
+          <div class="cd-timer warning" id="timerKangkung">7</div>
+          <div class="cd-unit">hari lagi panen</div>
+          <div class="cd-progress"><div class="cd-bar warning" style="width:78%"></div></div>
+        </div>
+        <div class="countdown-card">
+          <div class="cd-emoji">🐟</div>
+          <div class="cd-name">Lele Budikdamber</div>
+          <div class="cd-timer danger" id="timerLele">5</div>
+          <div class="cd-unit">hari lagi panen</div>
+          <div class="cd-progress"><div class="cd-bar danger" style="width:94%"></div></div>
+        </div>
+        <div class="countdown-card">
+          <div class="cd-emoji">🍅</div>
+          <div class="cd-name">Tomat Cherry</div>
+          <div class="cd-timer" id="timerTomat">21</div>
+          <div class="cd-unit">hari lagi panen</div>
+          <div class="cd-progress"><div class="cd-bar" style="width:42%"></div></div>
+        </div>
+        <div class="countdown-card">
+          <div class="cd-emoji">🥦</div>
+          <div class="cd-name">Bayam Merah</div>
+          <div class="cd-timer" id="timerBayam">14</div>
+          <div class="cd-unit">hari lagi panen</div>
+          <div class="cd-progress"><div class="cd-bar" style="width:65%"></div></div>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:16px;">Aksi Panen Terdekat</div>
+      <div class="pcard" style="border-color:rgba(230,156,0,.3);background:#fffdf2;">
+        <div class="pcard-title">🐟 Lele Siap Panen dalam 5 Hari <span class="badge badge-orange">Segera!</span></div>
+        <div style="font-size:13px;color:var(--c-muted);margin-bottom:12px;">Berat estimasi: ±1.8 kg · Nilai pasar: Rp 36.000</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Mau diapakan hasil panenmu?</div>
+        <div class="hc-btns">
+          <button class="hc-btn self" onclick="harvestChoice('konsumsi')">🍳 Konsumsi Sendiri</button>
+          <button class="hc-btn sell" onclick="harvestChoice('jual')">🛒 Jual di Pasar Warga</button>
+        </div>
+        <div id="harvestMsg" style="display:none;margin-top:10px;padding:10px;background:rgba(24,165,88,.08);border-radius:10px;font-size:13px;color:#0e7a40;font-weight:700;"></div>
+      </div>
+    </div>
+
+    <!-- ===== PANEL: DOMPET HIJAU (Ekonomi) ===== -->
+    <div class="panel" id="panelEkonomi">
+      <div class="panel-header">
+        <button class="panel-back" onclick="closePanel()">←</button>
+        <div class="panel-title">♻️ Dompet Hijau</div>
+      </div>
+
+      <div class="wallet-display">
+        <div class="wallet-icon">💰</div>
+        <div>
+          <div class="wallet-label">Saldo Bank Sampah Aktif</div>
+          <div class="wallet-amount">Rp 48.200</div>
+          <div style="font-size:12px;color:var(--c-muted);">≈ 4.820 Poin · Diperbarui tadi</div>
+        </div>
+      </div>
+
+      <div class="section-label">Riwayat Setoran</div>
+      <div class="history-list">
+        <div class="hist-item">
+          <div class="hist-icon">📦</div>
+          <div class="hist-info">
+            <div class="hist-name">Kardus & Kertas</div>
+            <div class="hist-date">Senin, 19 Mei 2025 · 3.2 kg</div>
+          </div>
+          <div class="hist-val">+Rp 9.600</div>
+        </div>
+        <div class="hist-item">
+          <div class="hist-icon">🥫</div>
+          <div class="hist-info">
+            <div class="hist-name">Kaleng Aluminium</div>
+            <div class="hist-date">Senin, 12 Mei 2025 · 0.8 kg</div>
+          </div>
+          <div class="hist-val">+Rp 14.400</div>
+        </div>
+        <div class="hist-item">
+          <div class="hist-icon">🍶</div>
+          <div class="hist-info">
+            <div class="hist-name">Botol Plastik PET</div>
+            <div class="hist-date">Senin, 5 Mei 2025 · 2.1 kg</div>
+          </div>
+          <div class="hist-val">+Rp 12.600</div>
+        </div>
+        <div class="hist-item">
+          <div class="hist-icon">🗞️</div>
+          <div class="hist-info">
+            <div class="hist-name">Koran & Majalah</div>
+            <div class="hist-date">Senin, 28 Apr 2025 · 4.0 kg</div>
+          </div>
+          <div class="hist-val">+Rp 11.600</div>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:18px;">🛍️ Etalase PKK — Belanja Pakai Saldo Sampah</div>
+      <div style="font-size:13px;color:var(--c-muted);margin-bottom:12px;">Sampahmu berubah jadi daya beli nyata!</div>
+      <div class="etalase-grid">
+        <div class="prod-card" onclick="openCheckout('🍰 Klepon Bu Sari','Rp 12.000')">
+          <div class="prod-emoji">🍰</div>
+          <div class="prod-name">Klepon Bu Sari</div>
+          <div class="prod-price">Rp 12.000</div>
+          <div class="prod-seller">PKK RT 07</div>
+        </div>
+        <div class="prod-card" onclick="openCheckout('🧺 Tas Anyam Pandan','Rp 25.000')">
+          <div class="prod-emoji">🧺</div>
+          <div class="prod-name">Tas Anyam Pandan</div>
+          <div class="prod-price">Rp 25.000</div>
+          <div class="prod-seller">PKK RT 05</div>
+        </div>
+        <div class="prod-card" onclick="openCheckout('🌶️ Sambal Terasi Bu Rina','Rp 18.000')">
+          <div class="prod-emoji">🌶️</div>
+          <div class="prod-name">Sambal Terasi Bu Rina</div>
+          <div class="prod-price">Rp 18.000</div>
+          <div class="prod-seller">PKK RT 07</div>
+        </div>
+        <div class="prod-card" onclick="openCheckout('🪴 Bibit Tomat Cherry','Rp 8.000')">
+          <div class="prod-emoji">🪴</div>
+          <div class="prod-name">Bibit Tomat Cherry</div>
+          <div class="prod-price">Rp 8.000</div>
+          <div class="prod-seller">PKK RT 03</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PANEL: POJOK SEHAT (Kesehatan) ===== -->
+    <div class="panel" id="panelKesehatan">
+      <div class="panel-header">
+        <button class="panel-back" onclick="closePanel()">←</button>
+        <div class="panel-title">🏥 Pojok Sehat</div>
+      </div>
+
+      <!-- LAPOR JENTIK -->
+      <div class="pcard" style="border-color:rgba(14,155,191,.25);background:#f0faff;">
+        <div class="pcard-title">📸 Lapor Jentik Minggu Ini <span class="badge badge-blue">Jumat!</span></div>
+        <div style="font-size:13px;color:var(--c-muted);margin-bottom:14px;">Proses cepat seperti upload story. +10 Poin tiap laporan diterima.</div>
+
+        <div class="lapor-steps" id="laporSteps">
+          <div class="step-item" id="step1">
+            <div class="step-num">1</div>
+            <div class="step-text">Siapkan Kamera</div>
+            <div class="step-status">Siap</div>
+          </div>
+          <div class="step-item" id="step2" style="opacity:.45">
+            <div class="step-num">2</div>
+            <div class="step-text">Foto Bak Mandi / Tampungan Air</div>
+            <div class="step-status">Menunggu</div>
+          </div>
+          <div class="step-item" id="step3" style="opacity:.45">
+            <div class="step-num">3</div>
+            <div class="step-text">Kirim & Dapatkan Poin</div>
+            <div class="step-status">Menunggu</div>
+          </div>
+        </div>
+
+        <button class="lapor-main-btn" id="laporBtn" onclick="startLapor()">
+          📸 Mulai Lapor Jentik
+        </button>
+        <div id="laporSuccess" style="display:none;margin-top:12px;padding:12px;background:rgba(24,165,88,.08);border-radius:12px;text-align:center;border:1px solid rgba(24,165,88,.2);">
+          <div style="font-size:24px;margin-bottom:4px;">✅</div>
+          <div style="font-weight:800;color:#0e7a40;">Laporan Terkirim!</div>
+          <div style="font-size:12px;color:var(--c-muted);">+10 Poin Komunitas ditambahkan</div>
+        </div>
+      </div>
+
+      <!-- STATUS MINGGUAN -->
+      <div class="pcard mt12">
+        <div class="pcard-title">📊 Rekap Laporan Bulan Ini</div>
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;text-align:center;background:var(--c-surface2);border-radius:12px;padding:12px;border:1px solid var(--c-border);">
+            <div style="font-family:'Righteous',cursive;font-size:24px;font-weight:400;color:#0e7a40;">4</div>
+            <div style="font-size:11px;color:var(--c-muted);">Laporan dikirim</div>
+          </div>
+          <div style="flex:1;text-align:center;background:var(--c-surface2);border-radius:12px;padding:12px;border:1px solid var(--c-border);">
+            <div style="font-family:'Righteous',cursive;font-size:24px;font-weight:400;color:#a06800;">+40</div>
+            <div style="font-size:11px;color:var(--c-muted);">Poin diperoleh</div>
+          </div>
+          <div style="flex:1;text-align:center;background:var(--c-surface2);border-radius:12px;padding:12px;border:1px solid var(--c-border);">
+            <div style="font-family:'Righteous',cursive;font-size:24px;font-weight:400;color:#0779a0;">0</div>
+            <div style="font-size:11px;color:var(--c-muted);">Jentik ditemukan</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOGA SEARCH -->
+      <div class="section-label" style="margin-top:16px;">🌿 Apotek Hidup — Cari Tanaman TOGA</div>
+      <div style="font-size:13px;color:var(--c-muted);margin-bottom:12px;">Ketik keluhanmu, kami rekomendasikan tanaman dari kebun balai RT.</div>
+      <div class="toga-search-wrap">
+        <span class="toga-search-icon">🔍</span>
+        <input
+          class="toga-input"
+          type="text"
+          id="togaInput"
+          placeholder="Contoh: sakit perut, demam, batuk..."
+          oninput="searchToga(this.value)"
+        >
+      </div>
+      <div class="toga-result" id="togaResult">
+        <div class="toga-plant-name" id="togaPlantName"></div>
+        <div class="toga-desc" id="togaDesc"></div>
+        <div class="toga-cara" id="togaCara"></div>
+        <div style="margin-top:10px;font-size:11px;color:var(--c-muted);">📍 Tersedia di kebun balai RT 07 · Blok B</div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+</div><!-- /app -->
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottom-nav">
+  <div class="bnav-item active" id="bnav-home" onclick="bnav('home')">
+    <div class="bnav-icon">🏠</div>Beranda
+  </div>
+  <div class="bnav-item" id="bnav-pangan" onclick="bnav('pangan')">
+    <div class="bnav-icon">🌱</div>Pangan
+  </div>
+  <div class="bnav-item" id="bnav-ekonomi" onclick="bnav('ekonomi')">
+    <div class="bnav-icon">♻️</div>Ekonomi
+  </div>
+  <div class="bnav-item" id="bnav-kesehatan" onclick="bnav('kesehatan')">
+    <div class="bnav-icon">🏥</div>Kesehatan
+  </div>
+</nav>
+
+<script>
+// ============================================================
+//  STATE
+// ============================================================
+let currentPanel = null;
+let laporStep = 0;
+let saldo = 4820;
+let cardIdx = 0;
+
+// ============================================================
+//  DYNAMIC ACTION CARDS DATA
+// ============================================================
+const cards = [
+  {
+    cls:'urgent',
+    tag:'⏰ Urgensi Hari Ini',
+    title:'Waktunya Lapor Jentik Minggu Ini!',
+    desc:'Hari ini Jumat — waktunya cek bak mandi & pelaporan rutin jentik. Proses hanya 30 detik, dapatkan +10 Poin Komunitas!',
+    btn:'📸 Lapor Sekarang',
+    action:()=>openPanel('kesehatan')
+  },
+  {
+    cls:'action-card',
+    tag:'🐟 Panen Hampir Tiba',
+    title:'5 Hari Lagi Lele Siap Panen!',
+    desc:'Budikdambermu memasuki hari ke-85. Siapkan tempat — estimasi hasil ±1.8 kg. Mau dijual atau dikonsumsi?',
+    btn:'🌱 Buka Dapur Hidup',
+    action:()=>openPanel('pangan')
+  },
+  {
+    cls:'health',
+    tag:'♻️ Saldo Baru Masuk',
+    title:'Rp 9.600 Masuk dari Setoran Sampah!',
+    desc:'Kardus 3.2 kg kamu sudah diproses Bank Sampah. Saldo siap dipakai belanja di Etalase PKK sekarang.',
+    btn:'🛍️ Belanja Sekarang',
+    action:()=>openPanel('ekonomi')
+  }
+];
+
+function setCard(i, e) {
+  if(e) e.stopPropagation();
+  cardIdx = i;
+  const c = cards[i];
+  const el = document.getElementById('actionCard');
+  el.className = 'action-card ' + c.cls;
+  document.getElementById('acTag').textContent = c.tag;
+  document.getElementById('acTitle').textContent = c.title;
+  document.getElementById('acDesc').textContent = c.desc;
+  document.getElementById('acBtn').textContent = c.btn;
+  document.querySelectorAll('.ac-dot').forEach((d,j)=>{
+    d.className='ac-dot'+(j===i?' active':'');
+  });
+}
+
+function handleActionCard() {
+  cards[cardIdx].action();
+}
+
+// Auto-rotate cards every 5s
+setInterval(()=>{
+  setCard((cardIdx+1) % cards.length);
+},5000);
+
+// ============================================================
+//  PANEL NAVIGATION
+// ============================================================
+function openPanel(name) {
+  currentPanel = name;
+  document.getElementById('actionCard').style.display = 'none';
+
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+
+  const map = {pangan:'panelPangan', ekonomi:'panelEkonomi', kesehatan:'panelKesehatan'};
+  const el = document.getElementById(map[name]);
+  if(el) el.classList.add('active');
+
+  // mobile: hide super-menu
+  if(window.innerWidth < 900) {
+    document.getElementById('superMenu').style.display = 'none';
+  }
+
+  // update bottom nav
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  const nav = document.getElementById('bnav-'+name);
+  if(nav) nav.classList.add('active');
+}
+
+function closePanel() {
+  currentPanel = null;
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('actionCard').style.display = '';
+  document.getElementById('superMenu').style.display = '';
+
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('bnav-home').classList.add('active');
+}
+
+function bnav(name) {
+  if(name === 'home') { closePanel(); return; }
+  openPanel(name);
+}
+
+// ============================================================
+//  HARVEST CHOICE
+// ============================================================
+function harvestChoice(type) {
+  const msg = document.getElementById('harvestMsg');
+  msg.style.display = 'block';
+  if(type === 'konsumsi') {
+    msg.style.color = '#0e7a40';
+    msg.innerHTML = '🍳 Mantap! Catat panen untuk laporan gizi keluarga. Selamat menikmati hasil kebunmu!';
+  } else {
+    msg.style.color = '#a06800';
+    msg.innerHTML = '🛒 Oke! Produkmu akan tampil di <b>Pasar Warga</b> segera. Buka Dompet Hijau untuk memantau penjualan.';
+  }
+  showToast('🐟 Pilihan panen berhasil disimpan!', '#18a558');
+}
+
+// ============================================================
+//  LAPOR JENTIK FLOW
+// ============================================================
+let laporDone = false;
+function startLapor() {
+  if(laporDone) return;
+
+  const btn = document.getElementById('laporBtn');
+
+  // Step 1 → kamera (simulasi)
+  if(laporStep === 0) {
+    laporStep = 1;
+    btn.textContent = '📷 Ambil Foto Sekarang…';
+    document.getElementById('step1').querySelector('.step-num').textContent = '✓';
+    document.getElementById('step1').querySelector('.step-num').classList.add('done');
+    document.getElementById('step1').querySelector('.step-status').textContent = 'Selesai';
+    document.getElementById('step2').style.opacity = '1';
+    setTimeout(()=>{
+      laporStep = 2;
+      btn.textContent = '📤 Kirim Laporan…';
+      document.getElementById('step2').querySelector('.step-num').textContent = '✓';
+      document.getElementById('step2').querySelector('.step-num').classList.add('done');
+      document.getElementById('step2').querySelector('.step-status').textContent = 'Foto OK';
+      document.getElementById('step3').style.opacity = '1';
+      setTimeout(()=>{
+        finishLapor();
+      },1000);
+    },1200);
+    return;
+  }
+}
+
+function finishLapor() {
+  laporDone = true;
+  document.getElementById('step3').querySelector('.step-num').textContent = '✓';
+  document.getElementById('step3').querySelector('.step-num').classList.add('done');
+  document.getElementById('step3').querySelector('.step-status').textContent = 'Terkirim!';
+  document.getElementById('laporBtn').style.display = 'none';
+  document.getElementById('laporSuccess').style.display = 'block';
+  saldo += 10;
+  document.getElementById('saldoDisplay').innerHTML = saldo.toLocaleString('id-ID') + ' <span>poin</span>';
+  showToast('🎉 +10 Poin Komunitas dari laporan jentik!', '#0e9bbf');
+}
+
+// ============================================================
+//  TOGA ENCYCLOPEDIA
+// ============================================================
+const togaDB = {
+  'sakit perut': {
+    plant: '🌿 Jahe (Zingiber officinale)',
+    desc: 'Jahe tersedia di kebun balai RT blok B. Berkhasiat meredakan mual, kembung, dan nyeri perut ringan. Mengandung gingerol yang bersifat anti-inflamasi alami.',
+    cara: '<b>Cara meresap:</b> Iris 3–5 cm jahe segar → rebus dengan 2 gelas air hingga tersisa 1 gelas → tambah sedikit gula merah → minum selagi hangat, 2x sehari.'
+  },
+  'demam': {
+    plant: '🍃 Sambiloto (Andrographis paniculata)',
+    desc: 'Sambiloto dikenal sebagai tanaman antibiotik alami. Efektif untuk menurunkan demam ringan hingga sedang dan meningkatkan daya tahan tubuh.',
+    cara: '<b>Cara meresap:</b> Ambil 5–7 lembar daun segar → cuci bersih → rebus dengan 2 gelas air hingga tersisa 1 gelas → minum 1x sehari. Rasanya pahit, boleh dicampur madu.'
+  },
+  'batuk': {
+    plant: '🍋 Jeruk Nipis + Kencur',
+    desc: 'Kombinasi perasan jeruk nipis dan kencur adalah obat batuk tradisional yang telah terbukti efektif untuk batuk berdahak maupun batuk kering.',
+    cara: '<b>Cara meresap:</b> Parut 2 ruas kencur → peras airnya → campur dengan perasan 1/2 jeruk nipis dan 1 sdt madu → konsumsi pagi hari sebelum makan.'
+  },
+  'darah tinggi': {
+    plant: '🧄 Bawang Putih (Allium sativum)',
+    desc: 'Bawang putih mengandung allicin yang terbukti secara klinis membantu menurunkan tekanan darah dan kadar kolesterol secara alami.',
+    cara: '<b>Cara konsumsi:</b> Makan 2 siung bawang putih mentah setiap pagi sebelum sarapan, atau bisa direbus dan diminum airnya bersama teh hangat.'
+  },
+  'luka': {
+    plant: '🌵 Lidah Buaya (Aloe vera)',
+    desc: 'Gel lidah buaya memiliki sifat antiseptik, anti-inflamasi, dan mempercepat regenerasi kulit. Tersedia banyak di kebun balai RT.',
+    cara: '<b>Cara pakai:</b> Potong satu ruas daun → cuci bersih → ambil gelnya → oleskan langsung pada luka atau kulit iritasi 2–3x sehari. Dinginkan di kulkas untuk efek lebih nyaman.'
+  },
+  'maag': {
+    plant: '🍃 Kunyit (Curcuma longa)',
+    desc: 'Kunyit mengandung kurkumin yang melindungi lapisan lambung, mengurangi produksi asam berlebih, dan meredakan peradangan pada saluran cerna.',
+    cara: '<b>Cara meresap:</b> Parut 2 ruas kunyit segar → peras airnya → campur dengan segelas air hangat + 1 sdt madu → minum 30 menit sebelum makan, 2x sehari.'
+  },
+};
+
+function searchToga(val) {
+  const v = val.toLowerCase().trim();
+  const result = document.getElementById('togaResult');
+  if(!v) { result.classList.remove('show'); return; }
+
+  let found = null;
+  for(const key in togaDB) {
+    if(v.includes(key) || key.includes(v)) { found = togaDB[key]; break; }
+  }
+
+  if(found) {
+    document.getElementById('togaPlantName').textContent = found.plant;
+    document.getElementById('togaDesc').textContent = found.desc;
+    document.getElementById('togaCara').innerHTML = found.cara;
+    result.classList.add('show');
+  } else if(v.length > 2) {
+    document.getElementById('togaPlantName').textContent = '🔍 Coba kata lain...';
+    document.getElementById('togaDesc').textContent = 'Coba ketik: sakit perut, demam, batuk, darah tinggi, luka, atau maag.';
+    document.getElementById('togaCara').innerHTML = '<b>Tip:</b> Ketik nama keluhan dalam bahasa Indonesia sederhana.';
+    result.classList.add('show');
+  } else {
+    result.classList.remove('show');
+  }
+}
+
+// ============================================================
+//  CHECKOUT MODAL
+// ============================================================
+function openCheckout(prod, price) {
+  document.getElementById('modalProd').textContent = prod;
+  document.getElementById('modalPrice').textContent = price;
+  document.getElementById('checkoutModal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('checkoutModal').classList.remove('show');
+}
+function confirmCheckout() {
+  const price = parseInt(document.getElementById('modalPrice').textContent.replace(/\D/g,''));
+  const rupiahEq = Math.floor(saldo * 10);
+  if(rupiahEq >= price) {
+    const pointsUsed = Math.ceil(price/10);
+    saldo -= pointsUsed;
+    document.getElementById('saldoDisplay').innerHTML = saldo.toLocaleString('id-ID') + ' <span>poin</span>';
+    closeModal();
+    showToast('🛍️ Pembelian berhasil! Saldo diperbarui.', '#e69c00');
+  } else {
+    closeModal();
+    showToast('⚠️ Saldo tidak cukup untuk produk ini.', '#e85d26');
+  }
+}
+
+// close modal on overlay click
+document.getElementById('checkoutModal').addEventListener('click', function(e){
+  if(e.target === this) closeModal();
+});
+
+// ============================================================
+//  TOAST
+// ============================================================
+let toastTimer = null;
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.innerHTML = msg;
+  t.style.borderColor = color || 'var(--c-accent)';
+  t.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+// Determine smart default card based on day
+(function(){
+  const day = new Date().getDay(); // 0=Sun,5=Fri
+  if(day === 5) setCard(0); // Jumat → lapor jentik
+  else setCard(1);         // default → lele panen
+})();
+</script>
+</body>
+</html>
